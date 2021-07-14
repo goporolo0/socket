@@ -54,23 +54,36 @@ def CheckPass(Request):
     else:
         return False
 def get_exchange_rate():
-    r = requests.get('https://vapi.vnappmob.com/api/request_api_key?scope=exchange_rate')
+    r = requests.get(
+        'https://vapi.vnappmob.com/api/request_api_key?scope=exchange_rate')
     j = r.json()
     key = j['results']
     head = {'Authorization': 'Bearer ' + key}
-    rr= requests.get(f"https://vapi.vnappmob.com/api/v2/exchange_rate/sbv", headers=head)
-    exchange_rate = rr.json()
-    exchange_rate = exchange_rate['results']
-   
 
+    rs = [None] * 7
+    temps = [None] * 7
+    rs[6] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/sbv",
+                         headers=head)
+    rs[1] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/vcb",
+                         headers=head)
+    rs[2] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/ctg",
+                         headers=head)
+    rs[3] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/tcb",
+                         headers=head)
+    rs[4] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/bid",
+                         headers=head)
+    rs[5] = requests.get("https://vapi.vnappmob.com/api/v2/exchange_rate/stb",
+                         headers=head)
+    for i in range(1, 7):
+        temps[i] = rs[i].json()
+        temps[i] = temps[i]['results']
+        # Serializing json
+        json_object = json.dumps(temps[i], indent=4)
 
-  
-    # Serializing json 
-    json_object = json.dumps(exchange_rate, indent = 4)
-    
-    # Writing to sample.json
-    with open("sbv.json", "w") as outfile:
-        outfile.write(json_object)
+        # Writing to sample.json
+
+        with open(f"./data/temp{i}.json", "w") as outfile:
+            outfile.write(json_object)
 
 
 
