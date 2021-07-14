@@ -61,7 +61,7 @@ def get_exchange_rate():
     rr= requests.get(f"https://vapi.vnappmob.com/api/v2/exchange_rate/sbv", headers=head)
     exchange_rate = rr.json()
     exchange_rate = exchange_rate['results']
-    return exchange_rate
+   
 
 
   
