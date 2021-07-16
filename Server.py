@@ -37,19 +37,37 @@ def XulyNhuCauClient(ClientConnection):
         password = ClientConnection.recv(1024).decode()
         if(Docfile(username, password) == 1):
             ClientConnection.send("Dang nhap thanh cong".encode("utf-8"))
-  
+
             datavcb=GetsizeData("vcb.json")
+            lenvcb=DodaiChuoiso(datavcb)
+            ClientConnection.send(lenvcb.encode())
             ClientConnection.send(datavcb.encode())
+
             datactg=GetsizeData("ctg.json")
+            lenctg=DodaiChuoiso(datactg)
+            ClientConnection.send(lenctg.encode())
             ClientConnection.send(datactg.encode())
+
             datatcb=GetsizeData("tcb.json")
+            lentcb=DodaiChuoiso(datatcb)
+            ClientConnection.send(lentcb.encode())
             ClientConnection.send(datatcb.encode())
+            
             databid=GetsizeData("bid.json")
+            lenbid=DodaiChuoiso(databid)
+            ClientConnection.send(lenbid.encode())
             ClientConnection.send(databid.encode())
+            
             datastb=GetsizeData("stb.json")
+            lenstb=DodaiChuoiso(datastb)
+            ClientConnection.send(lenstb.encode())
             ClientConnection.send(datastb.encode())
+
             datasbv=GetsizeData("sbv.json")
+            lensbv=DodaiChuoiso(datasbv)
+            ClientConnection.send(lensbv.encode())
             ClientConnection.send(datasbv.encode())
+
             SendFileExchangeToClient(ClientConnection,"vcb.json",int(datavcb))
             SendFileExchangeToClient(ClientConnection,"ctg.json",int(datactg))
             SendFileExchangeToClient(ClientConnection,"tcb.json",int(datatcb))
@@ -68,6 +86,11 @@ def XulyNhuCauClient(ClientConnection):
         else:
             Register(username, password)
             ClientConnection.send("Dang ky thanh cong".encode())
+
+def DodaiChuoiso(chuoiso):
+    temp=len(str(chuoiso))
+    temptwo=str(temp)
+    return temptwo
 
 
 def createserver():
