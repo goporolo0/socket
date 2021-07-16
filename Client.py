@@ -94,11 +94,22 @@ def Menu(soc):
         print("2. Register")
         choose=int((input("Nhap lua chon cua ban:")))
         soc.send(str(choose).encode())
-        if choose==1:
-            Sigin(soc)
+        if choose==1:   
+            Sigin(soc)  
             if(data=="Dang nhap thanh cong"):
-                receivefilefromclient(soc)
-                HienManHinhExchangeRate()
+                datavcb=int(soc.recv(4).decode())
+                datactg=int(soc.recv(4).decode())
+                datatcb=int(soc.recv(4).decode())
+                databid=int(soc.recv(4).decode())
+                datastb=int(soc.recv(4).decode())
+                datasbv=int(soc.recv(3).decode())
+                receivefilefromclient(soc,"vcb.json",datavcb)
+                receivefilefromclient(soc,"ctg.json",datactg)
+                receivefilefromclient(soc,"tcb.json",datatcb)
+                receivefilefromclient(soc,"bid.json",databid)
+                receivefilefromclient(soc,"stb.json",datastb)
+                receivefilefromclient(soc,"sbv.json",datasbv)
+                ManhinhChinh()
             else:
                 print("Dang nhap that bai")
             break
@@ -108,53 +119,84 @@ def Menu(soc):
         elif choose==0:
             break
 
-def receivefilefromclient(SOCKET):
-    file=open("sbv.json",'wb')
-    file_data=SOCKET.recv(1024)
+def receivefilefromclient(SOCKET,filenamejson,datasize):
+    file=open(filenamejson,'wb')
+    file_data=SOCKET.recv(datasize)
     file.write(file_data)
     file.close()
 
-def HienManHinhExchangeRate():
-    myjsonfile=open('sbv.json','r')
+def HienManHinhExchangeRate(filenamejson):
+    myjsonfile=open(filenamejson,'r')
     
     jsondata=myjsonfile.read()
     
     obj=json.loads(jsondata)
     list=obj
-    
+    listtemp=[]
+    index=0
+    for key in list[0].keys():
+        listtemp.insert(index,key)
+        index=index+1
     root=Tk()
     root.title('Exchange Rate')
     root.geometry("500x500")
     my_tree = ttk.Treeview(root)
-
-    my_tree['columns'] = ("Currency","Sell")
-
+ 
+    my_tree['columns'] = (listtemp[1:len(listtemp)])
     my_tree.column("#0",width=120,minwidth=25)
-    my_tree.column("Currency",anchor=CENTER,width=120)
-    my_tree.column("Sell",anchor=W,width=120)
+    my_tree.column(listtemp[1],anchor=CENTER,width=120)
 
-    my_tree.heading("#0",text="Buy",anchor=W)
-    my_tree.heading("Currency",text="Currency",anchor=CENTER)
-    my_tree.heading("Sell",text="Sell",anchor=W)
+    for i in range(2,len(listtemp)):
+        my_tree.column(listtemp[i],anchor=W,width=120)
 
-    for i in range(len(list)):
-        # for key in list[0].keys(): print (key)
-       
-        my_tree.insert(parent='',index='end',iid=i,text=list[i].get("buy"),values=(list[i].get("currency"),list[i].get("sell")))
-    # for i in range(len(list)):
-    #         for j in range(len(list[0])):
-    #             my_tree.insert
-                  
-                # self.e = Entry(root, width=20, fg='blue',
-                #                font=('Arial',16,'bold'))
-                  
-                # self.e.grid(row=i, column=j)
-                # self.e.insert(END, lst[i][j])
-          
+    my_tree.heading("#0",text=listtemp[0],anchor=W)
+    my_tree.heading(listtemp[1],text=listtemp[1],anchor=CENTER)
+    for i in range(2,len(listtemp)):
+        my_tree.heading(listtemp[i],text=listtemp[i],anchor=W)
+    
+    for i in range(len(list)):  
+        if(len(listtemp)==3):
+            my_tree.insert(parent='',index='end',iid=i,text=list[i].get(listtemp[0]),values=(list[i].get(listtemp[1]),list[i].get(listtemp[2])))
+        elif(len(listtemp)==4):
+            my_tree.insert(parent='',index='end',iid=i,text=list[i].get(listtemp[0]),values=(list[i].get(listtemp[1]),list[i].get(listtemp[2]),list[i].get(listtemp[3]))) 
     my_tree.pack(pady=20)
 
     root.mainloop()
+def ManhinhChinh():
+    root = Tk()
 
+    def bankCTG():
+        HienManHinhExchangeRate("ctg.json")
+    def bankVCB():
+        HienManHinhExchangeRate("vcb.json")
+    def bankTCB():
+        HienManHinhExchangeRate("tcb.json")
+    def bankBIDV():
+        HienManHinhExchangeRate("bid.json")
+    def bankSTB():
+        HienManHinhExchangeRate("stb.json")
+    def bankSBV():
+        HienManHinhExchangeRate("sbv.json")    
+    root.geometry("500x500")
+    l1=Label(root,text="EXCHANGE RATE OF 6 BANKS",fg="black",bg="LightYellow2",font=("Arial",20))
+    btVCB=Button(root,text="Bank Vietcombank (VCB)",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankVCB)
+    btCTG=Button(root,text="Bank Vietinbank (CTG)",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankCTG)
+    btTCB=Button(root,text="Bank Techcombank (TCB)",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankTCB)
+    btBIDV=Button(root,text="Bank BIDV",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankBIDV)
+    btSTB=Button(root,text="Bank Sacombank (STB)",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankSTB)
+    btSBV=Button(root,text="Bank SBV",font=("Arial",15),bg="RoyalBlue4",fg="white",width=23,command=bankSBV)
+    btExit=Button(root,text="Dang Xuat",font=("Arial",10),bg="RoyalBlue4",fg="white",width=10,command=root.destroy)
+    l2=Label(root,text="")
+    l1.grid(row=0,column=1)
+    btVCB.grid(row=1,column=1)
+    btCTG.grid(row=2,column=1)
+    btTCB.grid(row=3,column=1)
+    btBIDV.grid(row=4,column=1)
+    btSTB.grid(row=5,column=1)
+    btSBV.grid(row=6,column=1)
+    l2.grid(row=7,column=1)
+    btExit.grid(row=10,column=1)
+    root.mainloop()
 def createClient():
     soc=socket.socket(socket.AF_INET,socket.SOCK_STREAM,0)
     soc.connect((SERVER_ADDRESS,PORT))
