@@ -24,68 +24,72 @@ def Register(username, password):
         file = open('UserPass.txt', 'a')
         file.writelines(username+","+password+'\n')
     except Exception as e:
-        print(e)
+        print('client left')
     finally:
         file.close()
 
 
 def XulyNhuCauClient(ClientConnection):
-    temp = ClientConnection.recv(1024).decode()
-    choose = int(temp)
-    if choose == 1:
-        username = ClientConnection.recv(1024).decode()
-        password = ClientConnection.recv(1024).decode()
-        if(Docfile(username, password) == 1):
-            ClientConnection.send("Dang nhap thanh cong".encode("utf-8"))
+    try:
+        temp = ClientConnection.recv(1024).decode()
+        choose = int(temp)
+        if choose == 1:
+            username = ClientConnection.recv(1024).decode()
+            password = ClientConnection.recv(1024).decode()
+            if(Docfile(username, password) == 1):
+                ClientConnection.send("Dang nhap thanh cong".encode("utf-8"))
 
-            datavcb=GetsizeData("vcb.json")
-            lenvcb=DodaiChuoiso(datavcb)
-            ClientConnection.send(lenvcb.encode())
-            ClientConnection.send(datavcb.encode())
+                datavcb=GetsizeData("vcb.json")
+                lenvcb=DodaiChuoiso(datavcb)
+                ClientConnection.send(lenvcb.encode())
+                ClientConnection.send(datavcb.encode())
 
-            datactg=GetsizeData("ctg.json")
-            lenctg=DodaiChuoiso(datactg)
-            ClientConnection.send(lenctg.encode())
-            ClientConnection.send(datactg.encode())
+                datactg=GetsizeData("ctg.json")
+                lenctg=DodaiChuoiso(datactg)
+                ClientConnection.send(lenctg.encode())
+                ClientConnection.send(datactg.encode())
 
-            datatcb=GetsizeData("tcb.json")
-            lentcb=DodaiChuoiso(datatcb)
-            ClientConnection.send(lentcb.encode())
-            ClientConnection.send(datatcb.encode())
-            
-            databid=GetsizeData("bid.json")
-            lenbid=DodaiChuoiso(databid)
-            ClientConnection.send(lenbid.encode())
-            ClientConnection.send(databid.encode())
-            
-            datastb=GetsizeData("stb.json")
-            lenstb=DodaiChuoiso(datastb)
-            ClientConnection.send(lenstb.encode())
-            ClientConnection.send(datastb.encode())
+                datatcb=GetsizeData("tcb.json")
+                lentcb=DodaiChuoiso(datatcb)
+                ClientConnection.send(lentcb.encode())
+                ClientConnection.send(datatcb.encode())
+                
+                databid=GetsizeData("bid.json")
+                lenbid=DodaiChuoiso(databid)
+                ClientConnection.send(lenbid.encode())
+                ClientConnection.send(databid.encode())
+                
+                datastb=GetsizeData("stb.json")
+                lenstb=DodaiChuoiso(datastb)
+                ClientConnection.send(lenstb.encode())
+                ClientConnection.send(datastb.encode())
 
-            datasbv=GetsizeData("sbv.json")
-            lensbv=DodaiChuoiso(datasbv)
-            ClientConnection.send(lensbv.encode())
-            ClientConnection.send(datasbv.encode())
+                datasbv=GetsizeData("sbv.json")
+                lensbv=DodaiChuoiso(datasbv)
+                ClientConnection.send(lensbv.encode())
+                ClientConnection.send(datasbv.encode())
 
-            SendFileExchangeToClient(ClientConnection,"vcb.json",int(datavcb))
-            SendFileExchangeToClient(ClientConnection,"ctg.json",int(datactg))
-            SendFileExchangeToClient(ClientConnection,"tcb.json",int(datatcb))
-            SendFileExchangeToClient(ClientConnection,"bid.json",int(databid))
-            SendFileExchangeToClient(ClientConnection,"stb.json",int(datastb))
-            SendFileExchangeToClient(ClientConnection,"sbv.json",int(datasbv))  
-        else:
-            ClientConnection.send(
-                "Ban nhap sai tai khoan hoac mat khau".encode())
-    elif choose == 2:
-        username = ClientConnection.recv(1024).decode()
-        password = ClientConnection.recv(1024).decode()
-        if(Docfile(username, password) == 1):
-            ClientConnection.send(
-                "Da co tai khoan trung voi thong tin ban nhap".encode())
-        else:
-            Register(username, password)
-            ClientConnection.send("Dang ky thanh cong".encode())
+                SendFileExchangeToClient(ClientConnection,"vcb.json",int(datavcb))
+                SendFileExchangeToClient(ClientConnection,"ctg.json",int(datactg))
+                SendFileExchangeToClient(ClientConnection,"tcb.json",int(datatcb))
+                SendFileExchangeToClient(ClientConnection,"bid.json",int(databid))
+                SendFileExchangeToClient(ClientConnection,"stb.json",int(datastb))
+                SendFileExchangeToClient(ClientConnection,"sbv.json",int(datasbv))  
+            else:
+                ClientConnection.send(
+                    "Ban nhap sai tai khoan hoac mat khau".encode())
+        elif choose == 2:
+            username = ClientConnection.recv(1024).decode()
+            password = ClientConnection.recv(1024).decode()
+            if(Docfile(username, password) == 1):
+                ClientConnection.send(
+                    "Da co tai khoan trung voi thong tin ban nhap".encode())
+            else:
+                Register(username, password)
+                ClientConnection.send("Dang ky thanh cong".encode())
+    except:
+        print('client left')
+    
 
 def DodaiChuoiso(chuoiso):
     temp=len(str(chuoiso))
@@ -106,7 +110,6 @@ def createserver():
             ClientConnection.send(content.encode())
             XulyNhuCauClient(ClientConnection)
             while True:
-
                 Check = ClientConnection.recv(1024).decode()
 
                 if(Check == "Y"):
@@ -115,7 +118,7 @@ def createserver():
                     ClientConnection.close()
                     print('client left ')
         except Exception as e:
-            print(e)
+            print('client left ')
 
 
 def get_exchange_rate(filenamejson):
@@ -160,6 +163,20 @@ def Docfile(username, password):
     finally:
         file.close()
 
+def worker(ClientConnection):
+    XulyNhuCauClient(ClientConnection)
+    
+    while True:
+        try:
+            Check = ClientConnection.recv(1024).decode()
+
+            if(Check == "Y"):
+                XulyNhuCauClient(ClientConnection)
+            elif(Check == "N"):
+                ClientConnection.close()
+                print('client left ')
+        except Exception as e:
+           break
 
 if(__name__ == "__main__"):
     get_exchange_rate("ctg")
@@ -170,4 +187,17 @@ if(__name__ == "__main__"):
     get_exchange_rate("sbv")
     getInfo()
     choosePort()
-    createserver()
+    soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    soc.bind((HOST_ADDRESS, PORT))
+    soc.listen()
+    while True:
+        try:
+            ClientConnection, ClientAddress = soc.accept()
+            print("Connect to Client: ", ClientAddress)
+            content = "Server say hello Client"
+            ClientConnection.send(content.encode())
+
+            thread = threading.Thread(target=worker, args=(ClientConnection,))
+            thread.start()
+        except Exception as e:
+            print('client left')
