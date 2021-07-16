@@ -1,8 +1,9 @@
 import socket
 import json
+from tkinter.constants import SE
 import requests
 import threading
-
+import os
 
 def getInfo():
     global HOST_NAME
@@ -36,9 +37,25 @@ def XulyNhuCauClient(ClientConnection):
         password = ClientConnection.recv(1024).decode()
         if(Docfile(username, password) == 1):
             ClientConnection.send("Dang nhap thanh cong".encode("utf-8"))
-            # thread = threading.Thread(target=SendFileExchangeToClient, args=(ClientConnection,))
-            # thread.start()
-            SendFileExchangeToClient(ClientConnection)  # gửi 1 đống text
+  
+            datavcb=GetsizeData("vcb.json")
+            ClientConnection.send(datavcb.encode())
+            datactg=GetsizeData("ctg.json")
+            ClientConnection.send(datactg.encode())
+            datatcb=GetsizeData("tcb.json")
+            ClientConnection.send(datatcb.encode())
+            databid=GetsizeData("bid.json")
+            ClientConnection.send(databid.encode())
+            datastb=GetsizeData("stb.json")
+            ClientConnection.send(datastb.encode())
+            datasbv=GetsizeData("sbv.json")
+            ClientConnection.send(datasbv.encode())
+            SendFileExchangeToClient(ClientConnection,"vcb.json",int(datavcb))
+            SendFileExchangeToClient(ClientConnection,"ctg.json",int(datactg))
+            SendFileExchangeToClient(ClientConnection,"tcb.json",int(datatcb))
+            SendFileExchangeToClient(ClientConnection,"bid.json",int(databid))
+            SendFileExchangeToClient(ClientConnection,"stb.json",int(datastb))
+            SendFileExchangeToClient(ClientConnection,"sbv.json",int(datasbv))  
         else:
             ClientConnection.send(
                 "Ban nhap sai tai khoan hoac mat khau".encode())
@@ -78,14 +95,14 @@ def createserver():
             print(e)
 
 
-def get_exchange_rate():
+def get_exchange_rate(filenamejson):
     r = requests.get(
         'https://vapi.vnappmob.com/api/request_api_key?scope=exchange_rate')
     j = r.json()
     key = j['results']
     head = {'Authorization': 'Bearer ' + key}
     rr = requests.get(
-        f"https://vapi.vnappmob.com/api/v2/exchange_rate/sbv", headers=head)
+        f"https://vapi.vnappmob.com/api/v2/exchange_rate/"+filenamejson, headers=head)
     exchange_rate = rr.json()
     exchange_rate = exchange_rate['results']
 
@@ -93,17 +110,21 @@ def get_exchange_rate():
     json_object = json.dumps(exchange_rate, indent=4)
 
     # Writing to sbv.json
-    with open("sbv.json", "w") as outfile:
+    with open(filenamejson+".json", "w") as outfile:
         outfile.write(json_object)
 
 
-def SendFileExchangeToClient(SOCKET):
-    file = open('sbv.json', 'rb')
-    file_data = file.read(1024)
+def SendFileExchangeToClient(SOCKET,filenamejson,datasize):
+    file = open(filenamejson, 'rb')
+    file_data = file.read(datasize)
     SOCKET.send(file_data)
     print("Data has been transmitted successfully")
     file.close()
 
+def GetsizeData(filename):
+    file_size=os.path.getsize(filename)
+    return str(file_size)
+    
 
 def Docfile(username, password):
     try:
@@ -118,7 +139,12 @@ def Docfile(username, password):
 
 
 if(__name__ == "__main__"):
-    get_exchange_rate()
+    get_exchange_rate("ctg")
+    get_exchange_rate("vcb")
+    get_exchange_rate("tcb")
+    get_exchange_rate("bid")
+    get_exchange_rate("stb")
+    get_exchange_rate("sbv")
     getInfo()
     choosePort()
     createserver()
