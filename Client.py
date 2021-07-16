@@ -1,4 +1,4 @@
-#from functools import singledispatch
+
 import socket
 from tkinter import*
 import os
@@ -97,12 +97,24 @@ def Menu(soc):
         if choose==1:   
             Sigin(soc)  
             if(data=="Dang nhap thanh cong"):
-                datavcb=int(soc.recv(4).decode())
-                datactg=int(soc.recv(4).decode())
-                datatcb=int(soc.recv(4).decode())
-                databid=int(soc.recv(4).decode())
-                datastb=int(soc.recv(4).decode())
-                datasbv=int(soc.recv(3).decode())
+                lenvcb=int(soc.recv(1).decode())
+                datavcb=int(soc.recv(lenvcb).decode())
+
+                lenctg=int(soc.recv(1).decode())
+                datactg=int(soc.recv(lenctg).decode())
+
+                lentcb=int(soc.recv(1).decode())
+                datatcb=int(soc.recv(lentcb).decode())
+
+                lenbid=int(soc.recv(1).decode())
+                databid=int(soc.recv(lenbid).decode())
+
+                lenstb=int(soc.recv(1).decode())
+                datastb=int(soc.recv(lenstb).decode())
+
+                lensbv=int(soc.recv(1).decode())
+                datasbv=int(soc.recv(lensbv).decode())
+                
                 receivefilefromclient(soc,"vcb.json",datavcb)
                 receivefilefromclient(soc,"ctg.json",datactg)
                 receivefilefromclient(soc,"tcb.json",datatcb)
