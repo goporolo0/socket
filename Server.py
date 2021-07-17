@@ -4,6 +4,8 @@ from tkinter.constants import SE
 import requests
 import threading
 import os
+import time
+
 
 def getInfo():
     global HOST_NAME
@@ -39,42 +41,48 @@ def XulyNhuCauClient(ClientConnection):
             if(Docfile(username, password) == 1):
                 ClientConnection.send("Dang nhap thanh cong".encode("utf-8"))
 
-                datavcb=GetsizeData("vcb.json")
-                lenvcb=DodaiChuoiso(datavcb)
+                datavcb = GetsizeData("vcb.json")
+                lenvcb = DodaiChuoiso(datavcb)
                 ClientConnection.send(lenvcb.encode())
                 ClientConnection.send(datavcb.encode())
 
-                datactg=GetsizeData("ctg.json")
-                lenctg=DodaiChuoiso(datactg)
+                datactg = GetsizeData("ctg.json")
+                lenctg = DodaiChuoiso(datactg)
                 ClientConnection.send(lenctg.encode())
                 ClientConnection.send(datactg.encode())
 
-                datatcb=GetsizeData("tcb.json")
-                lentcb=DodaiChuoiso(datatcb)
+                datatcb = GetsizeData("tcb.json")
+                lentcb = DodaiChuoiso(datatcb)
                 ClientConnection.send(lentcb.encode())
                 ClientConnection.send(datatcb.encode())
-                
-                databid=GetsizeData("bid.json")
-                lenbid=DodaiChuoiso(databid)
+
+                databid = GetsizeData("bid.json")
+                lenbid = DodaiChuoiso(databid)
                 ClientConnection.send(lenbid.encode())
                 ClientConnection.send(databid.encode())
-                
-                datastb=GetsizeData("stb.json")
-                lenstb=DodaiChuoiso(datastb)
+
+                datastb = GetsizeData("stb.json")
+                lenstb = DodaiChuoiso(datastb)
                 ClientConnection.send(lenstb.encode())
                 ClientConnection.send(datastb.encode())
 
-                datasbv=GetsizeData("sbv.json")
-                lensbv=DodaiChuoiso(datasbv)
+                datasbv = GetsizeData("sbv.json")
+                lensbv = DodaiChuoiso(datasbv)
                 ClientConnection.send(lensbv.encode())
                 ClientConnection.send(datasbv.encode())
 
-                SendFileExchangeToClient(ClientConnection,"vcb.json",int(datavcb))
-                SendFileExchangeToClient(ClientConnection,"ctg.json",int(datactg))
-                SendFileExchangeToClient(ClientConnection,"tcb.json",int(datatcb))
-                SendFileExchangeToClient(ClientConnection,"bid.json",int(databid))
-                SendFileExchangeToClient(ClientConnection,"stb.json",int(datastb))
-                SendFileExchangeToClient(ClientConnection,"sbv.json",int(datasbv))  
+                SendFileExchangeToClient(
+                    ClientConnection, "vcb.json", int(datavcb))
+                SendFileExchangeToClient(
+                    ClientConnection, "ctg.json", int(datactg))
+                SendFileExchangeToClient(
+                    ClientConnection, "tcb.json", int(datatcb))
+                SendFileExchangeToClient(
+                    ClientConnection, "bid.json", int(databid))
+                SendFileExchangeToClient(
+                    ClientConnection, "stb.json", int(datastb))
+                SendFileExchangeToClient(
+                    ClientConnection, "sbv.json", int(datasbv))
             else:
                 ClientConnection.send(
                     "Ban nhap sai tai khoan hoac mat khau".encode())
@@ -89,11 +97,11 @@ def XulyNhuCauClient(ClientConnection):
                 ClientConnection.send("Dang ky thanh cong".encode())
     except:
         print('client left')
-    
+
 
 def DodaiChuoiso(chuoiso):
-    temp=len(str(chuoiso))
-    temptwo=str(temp)
+    temp = len(str(chuoiso))
+    temptwo = str(temp)
     return temptwo
 
 
@@ -140,17 +148,18 @@ def get_exchange_rate(filenamejson):
         outfile.write(json_object)
 
 
-def SendFileExchangeToClient(SOCKET,filenamejson,datasize):
+def SendFileExchangeToClient(SOCKET, filenamejson, datasize):
     file = open(filenamejson, 'rb')
     file_data = file.read(datasize)
     SOCKET.send(file_data)
     print("Data has been transmitted successfully")
     file.close()
 
+
 def GetsizeData(filename):
-    file_size=os.path.getsize(filename)
+    file_size = os.path.getsize(filename)
     return str(file_size)
-    
+
 
 def Docfile(username, password):
     try:
@@ -163,9 +172,10 @@ def Docfile(username, password):
     finally:
         file.close()
 
+
 def worker(ClientConnection):
     XulyNhuCauClient(ClientConnection)
-    
+
     while True:
         try:
             Check = ClientConnection.recv(1024).decode()
@@ -176,21 +186,33 @@ def worker(ClientConnection):
                 ClientConnection.close()
                 print('client left ')
         except Exception as e:
-           break
+            break
 
-if(__name__ == "__main__"):
+
+def getExRate():
     get_exchange_rate("ctg")
     get_exchange_rate("vcb")
     get_exchange_rate("tcb")
     get_exchange_rate("bid")
     get_exchange_rate("stb")
     get_exchange_rate("sbv")
-    getInfo()
-    choosePort()
+
+
+def updateEX():
+    start = time.time()
+    while True:
+        # print(time.time() - start)
+        if((time.time() - start) > 1800):
+            getExRate()
+            start = time.time()
+
+
+def run_app():
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     soc.bind((HOST_ADDRESS, PORT))
     soc.listen()
     while True:
+
         try:
             ClientConnection, ClientAddress = soc.accept()
             print("Connect to Client: ", ClientAddress)
@@ -199,5 +221,17 @@ if(__name__ == "__main__"):
 
             thread = threading.Thread(target=worker, args=(ClientConnection,))
             thread.start()
+
         except Exception as e:
             print('client left')
+
+
+if(__name__ == "__main__"):
+
+    getExRate()
+    getInfo()
+    choosePort()
+    threadApp = threading.Thread(target=run_app)
+    threadApp.start()
+    threadTime = threading.Thread(target=updateEX)
+    threadTime.start()
