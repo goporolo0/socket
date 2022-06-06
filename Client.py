@@ -39,7 +39,12 @@ def Sigin(SOCKET):
     bt1.grid(row=5,column=1)
     l4.grid(row=4,column=1)
     root.mainloop()
-
+    
+    func containsIgnoringCase(_ find: String) -> Bool{
+     return self.range(of: find, options: .caseInsensitive) != nil 
+        }
+    }
+    
 def Register(SOCKET):
     root= Tk()
     root.geometry("400x300")
